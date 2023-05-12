@@ -1,0 +1,75 @@
+{
+  "name": "reliable-idbopen",
+  "version": "1.0.0",
+  "description": "Open indexedDb to get the Database you need",
+  "main": "dist/index.js",
+  "browser": "dist/index.umd.js",
+  "module": "dist/index.es.js",
+  "types": "lib/index.d.ts",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "clean": "rimraf lib dist",
+    "prebuild": "npm run clean",
+    "build": "tsc && rollup -c",
+    "dev": "tsc && concurrently \"tsc --watch --preserveWatchOutput\" \"npm run server\" ",
+    "server": "vite",
+    "test": "vite ./test",
+    "test-cov": "nyc npm run test",
+    "prepack": "npm run test && npm run build"
+  },
+  "keywords": [
+    "indexedDB",
+    "idb",
+    "IDBDatabase"
+  ],
+  "author": "cnwhy",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^4.3.5",
+    "ava": "^1.4.1",
+    "chai": "^4.3.7",
+    "concurrently": "^8.0.1",
+    "cross-env": "^5.2.0",
+    "mocha": "^10.2.0",
+    "nyc": "^13.3.0",
+    "rimraf": "^2.6.3",
+    "rollup": "^1.15.1",
+    "rollup-plugin-node-resolve": "^5.0.1",
+    "rollup-plugin-typescript": "^1.0.1",
+    "ts-node": "^8.0.3",
+    "tslib": "^1.10.0",
+    "typescript": "^3.3.4000",
+    "vite": "^4.3.5"
+  },
+  "ava": {
+    "compileEnhancements": false,
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "**/*.d.ts"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "html",
+      "text-summary"
+    ],
+    "sourceMap": true,
+    "instrument": true
+  }
+}
