@@ -16,6 +16,7 @@
     "dev": "tsc && concurrently \"tsc --watch --preserveWatchOutput\" \"npm run server\" ",
     "server": "vite",
     "test": "vite ./test",
+    "demo": "vite ./demo",
     "test-cov": "nyc npm run test",
     "prepack": "npm run test && npm run build"
   },
@@ -32,8 +33,10 @@
     "chai": "^4.3.7",
     "concurrently": "^8.0.1",
     "cross-env": "^5.2.0",
+    "idb": "^7.1.1",
     "mocha": "^10.2.0",
     "nyc": "^13.3.0",
+    "puppeteer": "^20.2.1",
     "rimraf": "^2.6.3",
     "rollup": "^1.15.1",
     "rollup-plugin-node-resolve": "^5.0.1",
