@@ -1,7 +1,5 @@
-import "mocha/mocha";
-// import assert from 'assert';
 import { assert } from "chai";
-import { idbOpen, idbDelete } from "../src/index";
+import { idbOpen, idbDelete } from "../lib";
 const log = console.log.bind(console, "[mocha]");
 
 async function getAllDB() {
@@ -57,6 +55,7 @@ describe("简易用法 创建，删除数据库", () => {
     it(`idbOpen创建 数据库`, async () => {
         await idbOpen(dbName);
         assert.isTrue(await hasDB(dbName));
+        assert.fail("fail");
     });
 
     it(`idbDelete删除 数据库`, async () => {
@@ -110,8 +109,10 @@ describe("idbOpen", () => {
             const dbName = "db2",
                 stores = ["store1", "store2"];
             const db = await idbOpen(dbName, {
-                store: (db) => {
-                    return hasDB(...stores);
+                store: (db, ts) => {
+                    const names = [...db.objectStoreNames];
+                    // return hasDB(...stores);
+                    return stores.every((name) => names.includes(name));
                 },
                 upgradeneeded(db, event) {
                     stores.forEach((store) => {
@@ -123,17 +124,17 @@ describe("idbOpen", () => {
         });
 
         it(`upgradeneeded,store 相悖检测`, async () => {
-            const dbName = 'db2';
-            try{
+            const dbName = "db2";
+            try {
                 await idbOpen(dbName, {
                     store: (db) => {
-                        return db.objectStoreNames.contains('storeXX');
+                        return db.objectStoreNames.contains("storeXX");
                     },
                     upgradeneeded(db, event) {
-                        db.createObjectStore('storeX');
+                        db.createObjectStore("storeX");
                     },
                 });
-            }catch(e){
+            } catch (e) {
                 assert(true);
             }
         });

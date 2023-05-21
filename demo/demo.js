@@ -138,7 +138,7 @@ async function main() {
     console.log('1111', await cmd2.get('key'));
     let db = unwrap(await cmd2.getDB());
     console.log(db);
-    db.close();
+    // db.close();
     await new Promise((resolve, reject) => {
         setTimeout(resolve, 2000);
     });
@@ -181,9 +181,9 @@ async function main1() {
     await k2;
     await k3;
     console.log(await cmd1.get('id2'));
-    console.log('main1 end');
     console.log(await idbOpen('dbdbdb1'))
+    console.log('main1 end');
 }
-console.log(await idbOpen('dbdbdb1'))
-// main();
-// main1();
+// console.log(await idbOpen('dbdbdb1'))
+await main();
+await main1();

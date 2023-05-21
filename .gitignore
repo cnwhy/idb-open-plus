@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 dits/
+coverage/
+build/
+.nyc_output
