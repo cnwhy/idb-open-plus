@@ -1,67 +1,67 @@
-import puppeteer, { Page } from "puppeteer";
-import create from "../src/create";
-async function main() {
-    const browser = await puppeteer.launch({ headless: "new" });
-    const page = await browser.newPage();
-    try {
-        // await run(t, page);
-        await page.goto("http://127.0.0.1:3300", { waitUntil: "load" });
-        const h = await page.evaluate((a) => {
-            return window.location.href + a;
-        }, "");
-        console.log(h);
-        await page.exposeFunction("idbLibCreate", create);
-        await page.evaluate(async () => {
-            Object.assign(window, (window as any).idbLibCreate(window));
-        });
+import puppeteer, { type ConsoleMessage } from 'puppeteer';
+import pti from 'puppeteer-to-istanbul';
+import { fileURLToPath } from 'url';
+import { createServer } from 'vite';
 
-        const dbs = await page.evaluate(async () => {
-            const { idbOpen } = (window as any);
-            class OsCmd1 {
-                options = null;
-                open = null;
-                constructor(dbName, store) {
-                    this.options = {
-                        dbName,
-                        store,
-                    };
-                    this.open = () => idbOpen(dbName, { store });
-                }
-                getos = async (module = "readwrite") => {
-                    let { store } = this.options;
-                    const db = await this.open();
-                    return db.transaction(store, module).objectStore(store);
-                };
-                get = (id) => {
-                    return this.getos("readonly").then((os) => {
-                        return new Promise((resolve, reject) => {
-                            let request = os.get(id);
-                            request.onerror = reject;
-                            request.onsuccess = () => resolve(request.result);
-                        });
-                    });
-                };
-                set = (data, id) => {
-                    return this.getos("readwrite").then((os) => {
-                        return new Promise((resolve, reject) => {
-                            let request = os.put(data, id);
-                            request.onerror = reject;
-                            request.onsuccess = () => resolve(null);
-                        });
-                    });
-                };
-            }
-            await idbOpen("db1", { store: "os1" });
-            await idbOpen("db2", { store: "os1" });
-            await idbOpen("db2", { store: "os1" });
-            // return window.indexedDB?.databases();
-            return "";
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+
+const startServer = async () => {
+    const server = await createServer({
+        // 任何合法的用户配置选项，加上 `mode` 和 `configFile`
+        configFile: false,
+        root: __dirname,
+        server: {
+            port: 3300,
+        },
+    });
+    await server.listen();
+
+    server.printUrls();
+}
+
+async function main() {
+    await startServer();
+    // let executionQueue = Promise.resolve();
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox'],
+        headless: 'new',
+    });
+    const page = await browser.newPage();
+    async function end(errors) {
+        console.log('end', errors);
+        // await page.close();
+        const jsCoverage = await page.coverage.stopJSCoverage();
+        jsCoverage.forEach((item) => {
+            const { url } = item;
+            console.log(url);
         });
-        console.log(dbs);
-    } finally {
-        await page.close();
+        const out = jsCoverage.filter((item) => {
+            const isLib = item.url.indexOf('/idbConnection/(lib|src)/') !== -1;
+            if (isLib) {
+                let url = new URL(item.url);
+                url.pathname = url.pathname.replace(/\:/g, '_');
+                item.url = url.toString();
+                return true;
+            }
+            return false;
+        });
+        pti.write([...out], { storagePath: './.nyc_output' });
+
         await browser.close();
     }
+    page.on('error', (error) => console.error(error));
+    page.on('pageerror', (error) => console.error(error));
+    page.on('console', async (e) => {
+        const args = await Promise.all(e.args().map((a) => a.jsonValue()));
+        console.log(...args);
+    });
+    await page.exposeFunction('polendinaEnd', (errors) => {
+        end(errors);
+    });
+
+    // await run(t, page);
+    await page.coverage.startJSCoverage({ includeRawScriptCoverage: true });
+    await page.goto('http://127.0.0.1:3300', { waitUntil: 'load' });
 }
 
 main();

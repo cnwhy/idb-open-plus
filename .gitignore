@@ -27,3 +27,5 @@ dits/
 coverage/
 build/
 .nyc_output
+
+coverage

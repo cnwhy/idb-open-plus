@@ -5,7 +5,8 @@ export default defineConfig({
     lib: {
       entry: './src/index.ts',
       name: 'idbOpen',
-      fileName: 'index'
+      // fileName: 'index',
+      formats: ['es', 'umd'],
     }
   }
 })

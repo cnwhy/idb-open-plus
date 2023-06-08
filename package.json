@@ -12,18 +12,14 @@
   "scripts": {
     "clean": "rimraf lib dist",
     "prebuild": "npm run clean",
-    "build": "tsc && rollup -c",
+    "build": "tsc && rollup -c --bundleConfigAsCjs",
     "dev": "tsc && concurrently \"tsc --watch --preserveWatchOutput\" \"npm run server\" ",
     "server": "vite",
-    "test": "vite ./test --port 3300",
+    "test": "node ./test/b.js",
+    "test-server": "vite ./test --port 3300",
     "demo": "vite ./demo",
-    "test-cov": "nyc npm run test",
-    "test-ava": "cross-env TS_NODE_PROJECT='./test/tsconfig.json' ava --fail-fast test/ava/",
-    "test-ts": "cross-env TS_NODE_PROJECT='./test/tsconfig.json' ts-node test/a.ts",
-    "test-mocha": "cross-env TS_NODE_PROJECT='./test/tsconfig.json' mocha test/bdd.ts",
-    "test-polendina": "polendina --coverage test/bdd.ts",
-    "prepack": "npm run test && npm run build",
-    "build-es": "esbuild src/index.ts --bundle --outfile=dist/out.js"
+    "test-polendina": "polendina --coverage test/bdd.js",
+    "prepack": "npm run test && npm run build"
   },
   "keywords": [
     "indexedDB",
@@ -33,62 +29,28 @@
   "author": "cnwhy",
   "license": "ISC",
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-typescript": "^11.1.1",
     "@types/chai": "^4.3.5",
     "@types/mocha": "^10.0.1",
     "ava": "^1.4.1",
     "chai": "^4.3.7",
     "concurrently": "^8.0.1",
     "cross-env": "^5.2.0",
-    "esbuild": "0.17.19",
     "idb": "^7.1.1",
     "mocha": "^10.2.0",
-    "nyc": "^13.3.0",
+    "nyc": "^15.1.0",
+    "open": "^8.4.2",
     "polendina": "^3.2.1",
-    "puppeteer": "^20.2.1",
+    "puppeteer": "^20.4.0",
+    "puppeteer-to-istanbul": "^1.4.0",
     "rimraf": "^2.6.3",
-    "rollup": "^1.15.1",
-    "rollup-plugin-node-resolve": "^5.0.1",
-    "rollup-plugin-typescript": "^1.0.1",
+    "rollup": "^3.23.0",
     "ts-node": "^8.10.2",
     "tsconfig-paths": "^4.2.0",
     "tslib": "^1.10.0",
-    "typescript": "^3.3.4000",
+    "typescript": "^5.0.4",
     "vite": "^4.3.5"
   },
-  "mocha": {
-    "require": [
-      "ts-node/register",
-      "tsconfig-paths/register"
-    ],
-    "ui": "bdd"
-  },
-  "ava": {
-    "compileEnhancements": false,
-    "extensions": [
-      "ts"
-    ],
-    "require": [
-      "ts-node/register"
-    ]
-  },
-  "nyc": {
-    "include": [
-      "lib/**/*.js"
-    ],
-    "exclude": [
-      "**/*.d.ts"
-    ],
-    "extension": [
-      ".ts"
-    ],
-    "require": [
-      "ts-node/register"
-    ],
-    "reporter": [
-      "html",
-      "text-summary"
-    ],
-    "sourceMap": true,
-    "instrument": true
-  }
+  "dependencies": {}
 }

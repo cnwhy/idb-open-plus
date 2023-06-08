@@ -95,13 +95,13 @@ export default function create(global: Window) {
                 let request = global.indexedDB.open(dbName, version);
                 // 请求数据库失败的回调函数
                 request.onerror = function (_event) {
-                    console.log("打开数据库失败,错误信息为:", this.error);
+                    // console.log("打开数据库失败,错误信息为:", this.error);
                     reject(this.error);
                 };
                 let iserror = false;
                 //版本更新的时候或者第一次打开数据库的时候
                 request.onupgradeneeded = function (event) {
-                    console.log("进入 onupgradeneeded", request);
+                    // console.log("进入 onupgradeneeded", request);
                     try {
                         const db = this.result;
                         const transaction = this.transaction;
@@ -119,7 +119,7 @@ export default function create(global: Window) {
                                 db.createObjectStore(store, {
                                     autoIncrement: true, //自动生成主键
                                 });
-                                console.log("成功创建数据的ObjectStore", store);
+                                // console.log("成功创建数据的ObjectStore", store);
                             }
                         } else {
                             if (
@@ -136,22 +136,22 @@ export default function create(global: Window) {
                 // 请求数据库成功的回调函数
                 request.onsuccess = function (_event) {
                     if (iserror) return;
-                    console.log("onsuccess:", request.transaction);
+                    // console.log("onsuccess:", request.transaction);
                     const db = this.result;
                     dbMap.set(dbName, db);
                     resolve(dbTest(db));
                     db.onversionchange = function () {
-                        console.log("onversionchange");
+                        // console.log("onversionchange");
                         db.close();
                         dbMap.delete(dbName);
                     };
                     db.onclose = function () {
-                        console.log("onclose");
+                        // console.log("onclose");
                         dbMap.delete(dbName);
                     };
                 };
                 request.onblocked = function (_event) {
-                    // console.log('onblocked');
+                    console.log('onblocked');
                     let db = dbMap.get(dbName);
                     if (db) db?.close?.();
                 };
@@ -164,17 +164,17 @@ export default function create(global: Window) {
             let request = global.indexedDB.deleteDatabase(dbName);
             // 请求数据库失败的回调函数
             request.onerror = function (err) {
-                console.log("删除数据库失败,错误信息为:", err);
+                // console.log("删除数据库失败,错误信息为:", err);
                 reject(err);
             };
             // 请求数据库成功的回调函数
             request.onsuccess = function (_event) {
-                console.log("删除数据库成功");
+                // console.log("删除数据库成功");
                 dbMap.delete(dbName);
                 resolve(null);
             };
             request.onblocked = function (_event) {
-                console.log("上一次的数据库未关闭");
+                // console.log("上一次的数据库未关闭");
                 let db = dbMap.get(dbName);
                 if (db) db.close();
             };
