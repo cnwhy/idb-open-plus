@@ -56,7 +56,7 @@ describe('简易用法 创建，删除数据库', () => {
     it(`idbOpen创建 数据库`, async () => {
         await idbOpen(dbName);
         assert.isTrue(await hasDB(dbName));
-        assert.fail("fail");
+        assert.fail("故意出错！");
     });
 
     it(`idbDelete删除 数据库`, async () => {

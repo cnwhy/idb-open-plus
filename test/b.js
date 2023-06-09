@@ -13,6 +13,7 @@ const open = require('open');
 // const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const codePath = path.join(__dirname, '..').replace(/\\/g, '/');
 const coverageInclude = new RegExp(codePath + '/(lib|src)');
+const port = 3300;
 
 const startServer = async () => {
     const server = await createServer({
@@ -20,11 +21,10 @@ const startServer = async () => {
         configFile: false,
         root: __dirname,
         server: {
-            port: 3300,
+            port: port,
         },
     });
     await server.listen();
-
     server.printUrls();
     return server;
 };
@@ -73,7 +73,7 @@ async function main() {
                 return false;
             });
             pti.write([...out], { storagePath: './.nyc_output' });
-            var nyc = new NYC({ report: ['html', 'text'] });
+            var nyc = new NYC({ reporter: ['text', 'html'] });
             await nyc.report();
             let htmlFile = path.join(__dirname, '../coverage/index.html');
             console.log(`详细报告: ${htmlFile}`);
@@ -92,7 +92,7 @@ async function main() {
 
     // await run(t, page);
     await page.coverage.startJSCoverage({ includeRawScriptCoverage: true });
-    await page.goto('http://127.0.0.1:3300', { waitUntil: 'load' });
+    await page.goto(`http://127.0.0.1:${port}`, { waitUntil: 'load' });
 }
 
 main();
