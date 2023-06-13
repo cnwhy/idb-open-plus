@@ -1,21 +1,21 @@
 {
-  "name": "reliable-idbopen",
+  "name": "idb-open",
   "version": "1.0.0",
   "description": "Open indexedDb to get the Database you need",
-  "main": "dist/index.js",
-  "browser": "dist/index.umd.js",
-  "module": "dist/index.es.js",
+  "main": "dist/idb-open.umd",
+  "browser": "dist/idb-open.umd",
+  "module": "lib/index.js",
   "types": "lib/index.d.ts",
-  "directories": {
-    "test": "test"
-  },
+  "files": ["lib","dist"],
   "scripts": {
     "clean": "rimraf lib dist",
     "prebuild": "npm run clean",
-    "build": "tsc && rollup -c --bundleConfigAsCjs",
+    "build": "npm run build:vite",
+    "build:rollup": "tsc && rollup -c --bundleConfigAsCjs",
+    "build:vite": "tsc && vite build",
     "dev": "tsc && concurrently \"tsc --watch --preserveWatchOutput\" \"npm run server\" ",
     "server": "vite",
-    "test": "node ./test/b.js",
+    "test": "node ./test/test.js",
     "test-server": "vite ./test --port 3300",
     "demo": "vite ./demo",
     "test-polendina": "polendina --coverage test/bdd.js",
@@ -50,6 +50,7 @@
     "tsconfig-paths": "^4.2.0",
     "tslib": "^1.10.0",
     "typescript": "^5.0.4",
+    "v8-to-istanbul": "^9.1.0",
     "vite": "^4.3.5"
   },
   "dependencies": {}

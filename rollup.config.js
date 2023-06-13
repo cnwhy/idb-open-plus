@@ -4,7 +4,7 @@ import pkg from './package.json';
 
 let banner = `/*!
  * ${pkg.name}  v${pkg.version}
- * Homepage ${pkg.homepage}
+ * Homepage ${pkg.homepage || ''}
  * License ${pkg.license}
  */
 `;
@@ -20,11 +20,11 @@ let out_index = [
         input: './src/index.ts',
         plugins: [plugins_typeES2015],
         output: [
-            {
-                file: pkg.module,
-                format: 'es',
-                banner: banner,
-            },
+            // {
+            //     file: pkg.module,
+            //     format: 'es',
+            //     banner: banner,
+            // },
             {
                 file: pkg.main,
                 format: 'cjs',

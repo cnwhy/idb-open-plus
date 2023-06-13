@@ -1,3 +1,4 @@
+// use puppeteer-to-istanbul
 import puppeteer, { type ConsoleMessage } from 'puppeteer';
 import pti from 'puppeteer-to-istanbul';
 import { fileURLToPath } from 'url';
