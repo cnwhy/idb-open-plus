@@ -16,6 +16,10 @@ const port = 3300;
 
 const outDir = path.join(__dirname, '../.nyc_output');
 
+const args = process.argv.slice(2);
+
+const noOpen = args.includes('--noOpen')
+
 const startServer = async () => {
     const server = await createServer({
         // 任何合法的用户配置选项，加上 `mode` 和 `configFile`
@@ -126,7 +130,7 @@ async function main() {
             await nyc.report();
             let htmlFile = path.join(__dirname, '../coverage/index.html');
             console.log(`详细报告: ${htmlFile}`);
-            open(htmlFile);
+            noOpen || open(htmlFile);
         }
 
         await browser.close();

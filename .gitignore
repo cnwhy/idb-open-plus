@@ -25,7 +25,6 @@ dist-ssr
 
 dits/
 coverage/
-build/
-.nyc_output
-
-coverage
+lib/
+.nyc_output/
+package-lock.json
