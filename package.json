@@ -19,10 +19,11 @@
     "dev": "tsc && concurrently \"tsc --watch --preserveWatchOutput\" \"npm run server\" ",
     "server": "vite",
     "test": "node ./test/test.js",
+    "coverage": "node test -- --coverage",
     "test-server": "vite ./test --port 3300",
     "demo": "vite ./demo",
     "test-polendina": "polendina --coverage test/bdd.js",
-    "prepack": "npm run test && npm run build"
+    "prepack": "npm test && npm run build"
   },
   "keywords": [
     "indexedDB",

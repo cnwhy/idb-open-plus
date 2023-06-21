@@ -1,24 +1,25 @@
 // use v8-to-istanbul
-const path = require('path');
-const fs = require('fs');
-const puppeteer = require('puppeteer');
-const pti = require('puppeteer-to-istanbul');
-const { createServer } = require('vite');
-const NYC = require('nyc');
-const open = require('open');
-const v8toIstanbul = require('v8-to-istanbul');
+const path = require("path");
+const fs = require("fs");
+const puppeteer = require("puppeteer");
+const pti = require("puppeteer-to-istanbul");
+const { createServer } = require("vite");
+const NYC = require("nyc");
+const open = require("open");
+const v8toIstanbul = require("v8-to-istanbul");
 // const { exec } = require('child_process');
 
 // const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const codePath = path.join(__dirname, '..').replace(/\\/g, '/');
-const coverageInclude = new RegExp(codePath + '/(lib|src)');
+const codePath = path.join(__dirname, "..").replace(/\\/g, "/");
+const coverageInclude = new RegExp(codePath + "/(lib|src)");
 const port = 3300;
 
-const outDir = path.join(__dirname, '../.nyc_output');
+const outDir = path.join(__dirname, "../.nyc_output");
 
 const args = process.argv.slice(2);
 
-const noOpen = args.includes('--noOpen')
+const noOpen = args.includes("--noOpen");
+const coverage = args.includes("--coverage");
 
 const startServer = async () => {
     const server = await createServer({
@@ -51,16 +52,16 @@ async function main() {
     let outLog = Promise.resolve();
     // let executionQueue = Promise.resolve();
     const browser = await puppeteer.launch({
-        args: ['--no-sandbox'],
-        headless: 'new',
+        args: ["--no-sandbox"],
+        headless: "new",
     });
     const page = await browser.newPage();
     async function end(errors) {
-        await runConsole(['====> 自动测试完成，一共有%s个错误', errors]);
+        await runConsole(["====> 自动测试完成，一共有%s个错误", errors]);
 
-        if (true) {
-            // if(!errors){
-            console.log('====> 开始分析覆盖率');
+        // if (true) {
+        if (!errors && coverage) {
+            console.log("====> 开始分析覆盖率");
             // await page.close();
             const jsCoverage = await page.coverage.stopJSCoverage();
             // jsCoverage.forEach((item) => {
@@ -104,7 +105,7 @@ async function main() {
             let outJson = {};
             for (let k of out) {
                 let url = new URL(k.url);
-                url = url.pathname.replace('/@fs/', '');
+                url = url.pathname.replace("/@fs/", "");
                 const converter = v8toIstanbul(url, undefined, {
                     source: k.text,
                 });
@@ -119,16 +120,16 @@ async function main() {
             }
             fs.mkdirSync(outDir, { recursive: true });
             fs.writeFileSync(
-                path.join(outDir, 'out.json'),
+                path.join(outDir, "out.json"),
                 JSON.stringify(outJson),
-                { flag: 'w' }
+                { flag: "w" }
             );
 
-            console.log('====> 分析完成');
-            console.log('====> 开始生成覆盖率报告');
-            var nyc = new NYC({ reporter: ['text', 'html'] });
+            console.log("====> 分析完成");
+            console.log("====> 开始生成覆盖率报告");
+            var nyc = new NYC({ reporter: ["text", "html"] });
             await nyc.report();
-            let htmlFile = path.join(__dirname, '../coverage/index.html');
+            let htmlFile = path.join(__dirname, "../coverage/index.html");
             console.log(`详细报告: ${htmlFile}`);
             noOpen || open(htmlFile);
         }
@@ -136,16 +137,19 @@ async function main() {
         await browser.close();
         await server.close();
     }
-    page.on('error', (error) => console.error(error));
-    page.on('pageerror', (error) => console.error(error));
-    page.on('console', onConsole);
-    await page.exposeFunction('polendinaEnd', (errors) => {
-        end(errors);
+    page.on("error", (error) => console.error(error));
+    page.on("pageerror", (error) => console.error(error));
+    page.on("console", onConsole);
+    await page.exposeFunction("polendinaEnd", async (errors) => {
+        await end(errors);
+        if (errors) process.exit(1);
     });
 
     // await run(t, page);
-    await page.coverage.startJSCoverage({ includeRawScriptCoverage: true });
-    await page.goto(`http://127.0.0.1:${serverPort}`, { waitUntil: 'load' });
+    if(coverage){
+        await page.coverage.startJSCoverage({ includeRawScriptCoverage: true });
+    }
+    await page.goto(`http://127.0.0.1:${serverPort}`, { waitUntil: "load" });
 }
 
 main();

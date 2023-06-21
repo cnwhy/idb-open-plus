@@ -1,5 +1,6 @@
-import { idbOpen, idbDelete } from '../src/index';
 import { openDB, wrap, unwrap } from 'idb';
+// import { idbOpen, idbDelete } from 'idb-open';
+const { idbOpen, idbDelete } = window.idbOpen;
 class OsCmd1 {
     constructor(dbName, store) {
         this.options = {
