@@ -1,5 +1,5 @@
-import { assert } from 'chai';
-import { idbOpen, idbDelete } from '../src';
+import { assert } from "chai";
+import { idbOpen, idbDelete } from "../src";
 // (window as any).idbOpen = idbOpen;
 // (window as any).idbOpen = idbDelete;
 const log = function (...arg) {};
@@ -14,7 +14,7 @@ async function clearAllDB() {
     for (let db of dbs) {
         idbDelete(db.name);
     }
-    log('数据库已清理!');
+    log("数据库已清理!");
 }
 
 async function hasDB(...name) {
@@ -35,34 +35,34 @@ function hasStore(name, db) {
     return stores.contains(name);
 }
 
-describe('idbOpen 报错处理', () => {
+describe("idbOpen 报错处理", () => {
     beforeEach(async () => {
-        log('beforeEach');
+        log("beforeEach");
         await clearAllDB();
     });
     it(`upgradeneeded,store 相悖检测`, async () => {
-        const dbName = 'db2';
+        const dbName = "db2";
         try {
             await idbOpen(dbName, {
-                store: (db) => {
-                    return db.objectStoreNames.contains('storeXX');
-                },
-                upgradeneeded(db, event) {
-                    db.createObjectStore('storeX');
+                store: (db, t) => {
+                    if (db.objectStoreNames.contains("storeXX")) return;
+                    return (db, t, event) => {
+                        db.createObjectStore("storeX");
+                    };
                 },
             });
         } catch (e) {
-            log('err', e);
+            log("err", e);
             assert(true);
         }
     });
     it(`upgradeneeded 参数缺失`, async () => {
-        const dbName = 'db2';
+        const dbName = "db2";
         try {
             await idbOpen(dbName, {
                 store: (db) => {
-                    return db.objectStoreNames.contains('storeXX');
-                }
+                    if (db.objectStoreNames.contains("storeXX")) return;
+                },
             });
         } catch (e) {
             // log('err', e);
@@ -71,64 +71,58 @@ describe('idbOpen 报错处理', () => {
     });
 
     it(`option.store 报错处理`, async () => {
-        const dbName = 'db2',
-            store = 'store3';
+        const dbName = "db2",
+            store = "store3";
         try {
             // debugger;
             await idbOpen(dbName, {
                 store: (db) => {
                     // return db.objectStoreNames.contains(store);
-                    throw 'err';
-                },
-                upgradeneeded(db, event) {
-                    db.createObjectStore(store);
+                    throw "err";
                 },
             });
         } catch (e) {
-            log('err', e);
-            assert.equal(e, 'err');
+            log("err", e);
+            assert.equal(e, "err");
         }
     });
     it(`option.store 现在db的情况下报错`, async () => {
-        const dbName = 'db2',
-            store = 'store3';
-        await idbOpen(dbName, {store: store});
+        const dbName = "db2",
+            store = "store3";
+        await idbOpen(dbName, { store: store });
         try {
             await idbOpen(dbName, {
                 store: (db) => {
-                    throw 'err';
-                },
-                upgradeneeded(db, event) {
-                    db.createObjectStore(store);
+                    throw "err";
                 },
             });
         } catch (e) {
-            log('err', e);
-            assert.equal(e, 'err');
+            log("err", e);
+            assert.equal(e, "err");
         }
     });
     it(`option.upgradeneeded 报错处理`, async () => {
-        const dbName = 'db2',
-            store = 'store3';
+        const dbName = "db2",
+            store = "store3";
         try {
             await idbOpen(dbName, {
                 store: (db) => {
-                    log('aaa11111');
-                    return db.objectStoreNames.contains(store);
-                },
-                upgradeneeded(db, event) {
-                    throw 'err123';
+                    log("aaa11111");
+                    if (db.objectStoreNames.contains(store)) return;
+                    return (db, tf, event) => {
+                        throw "err123";
+                    };
                 },
             });
         } catch (e) {
-            log('err', e);
-            assert.equal(e, 'err123');
+            log("err", e);
+            assert.equal(e, "err123");
         }
     });
 });
 
-describe('简易用法 创建，删除数据库', () => {
-    const dbName = '53f87445-4dac-4bf5-86bd-8afcb6657f2f';
+describe("简易用法 创建，删除数据库", () => {
+    const dbName = "53f87445-4dac-4bf5-86bd-8afcb6657f2f";
     before(async () => {
         // log('before');
         await clearAllDB();
@@ -159,9 +153,9 @@ describe('简易用法 创建，删除数据库', () => {
     });
 });
 
-describe('idbOpen', () => {
+describe("idbOpen", () => {
     beforeEach(async () => {
-        log('beforeEach');
+        log("beforeEach");
         await clearAllDB();
     });
     // afterEach(async () => {
@@ -169,7 +163,7 @@ describe('idbOpen', () => {
     // });
     describe(`idbOpen(string)`, () => {
         it(`idbOpen(string)`, async () => {
-            let db = await idbOpen('test1');
+            let db = await idbOpen("test1");
             assert.isTrue(!!db.version);
         });
         [undefined, null, 1, NaN].map((name: any) => {
@@ -184,43 +178,44 @@ describe('idbOpen', () => {
         });
     });
 
-    describe('idbOpen 高阶用法', () => {
+    describe("idbOpen 高阶用法", () => {
         it(`自动创建对像表 option: {store: string}`, async () => {
-            const db1store1 = () => idbOpen('db1', { store: 'store1' });
-            const db1store2 = () => idbOpen('db1', { store: 'store2' });
+            const db1store1 = () => idbOpen("db1", { store: "store1" });
+            const db1store2 = () => idbOpen("db1", { store: "store2" });
             const db = await db1store1();
-            assert.isTrue(hasStore('store1', db));
-            const ds = db.transaction('store1', 'readwrite').objectStore('store1')
-            ds.put({abc:1});
+            assert.isTrue(hasStore("store1", db));
+            const ds = db
+                .transaction("store1", "readwrite")
+                .objectStore("store1");
+            ds.put({ abc: 1 });
             db.close();
             const db1 = await db1store2();
-            assert.isTrue(hasStore(['store1', 'store2'], db1));
-            assert.isTrue(hasStore(['store1', 'store2'], await db1store1()));
+            assert.isTrue(hasStore(["store1", "store2"], db1));
+            assert.isTrue(hasStore(["store1", "store2"], await db1store1()));
         });
 
         it(`自定义创建对像表 option: {store: string, upgradeneeded: (db) => void}`, async () => {
-            const db = await idbOpen('db2', {
-                store: 'store1',
-                upgradeneeded(db, event) {
-                    db.createObjectStore('store1');
-                },
+            const db = await idbOpen("db2", {
+                store: "store1",
             });
-            assert.isTrue(hasStore('store1', db));
+            assert.isTrue(hasStore("store1", db));
         });
 
         it(`自定义检测数据库并自定义创建对像表 option: {store: (db) => void, upgradeneeded: (db) => void}`, async () => {
-            const dbName = 'db2',
-                stores = ['store1', 'store2'];
+            const dbName = "db2",
+                stores = ["store1", "store2"];
             const db = await idbOpen(dbName, {
                 store: (db, ts) => {
                     const names = [...db.objectStoreNames];
                     // return hasDB(...stores);
-                    return stores.every((name) => names.includes(name));
-                },
-                upgradeneeded(db, event) {
-                    stores.forEach((store) => {
-                        db.createObjectStore(store, { autoIncrement: true });
-                    });
+                    if (stores.every((name) => names.includes(name))) return;
+                    return (db, ts, event) => {
+                        stores.forEach((store) => {
+                            db.createObjectStore(store, {
+                                autoIncrement: true,
+                            });
+                        });
+                    };
                 },
             });
             assert.isTrue(hasStore(stores, db));

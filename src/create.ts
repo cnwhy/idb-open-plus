@@ -1,17 +1,28 @@
+import {
+    addIndex,
+    buildGlobalSchema,
+    createTable,
+    getDiffByObjectStore,
+    getSchemaDiff,
+} from "./utils";
+
+export type Upgradeneeded = (
+    this: IDBOpenDBRequest,
+    db: IDBDatabase,
+    transaction: IDBTransaction,
+    event: IDBVersionChangeEvent
+) => void;
+
 export type InitOptions = {
     /** 存储库名称 或者用于检测是否需要更新数据数的函数,返回 true 则不更新, 否则执行 upgradeneeded */
-    store?: string | ((db: IDBDatabase, itc?: IDBTransaction) => boolean);
-    /**
-     * 更新数据库
-     * @param db IDBDatabase
-     * @param event onupgradeneeded的事件对像
-     */
-    upgradeneeded?: (
-        this: IDBOpenDBRequest,
-        db: IDBDatabase,
-        itc: IDBTransaction,
-        event: IDBVersionChangeEvent
-    ) => void;
+    store?:
+        | string
+        | { [name: string]: string }
+        | ((
+              db: IDBDatabase,
+              transaction: IDBTransaction
+          ) => void | Upgradeneeded);
+    incrementalUpdate?: boolean;
 };
 
 export default function create(global: Window) {
@@ -29,10 +40,10 @@ export default function create(global: Window) {
         options?: InitOptions
     ) => Promise<IDBDatabase> = async (
         dbName,
-        { store, upgradeneeded } = {}
+        { store, incrementalUpdate } = {}
     ) => {
-        if (!dbName || typeof dbName !== 'string') {
-            return Promise.reject(new TypeError('dbName must be a string'));
+        if (!dbName || typeof dbName !== "string") {
+            return Promise.reject(new TypeError("dbName must be a string"));
         }
 
         // if (!version) {
@@ -47,9 +58,9 @@ export default function create(global: Window) {
                     !(
                         e instanceof Error &&
                         Object.prototype.toString.call(e) ===
-                            '[object DOMException]' &&
+                            "[object DOMException]" &&
                         e.message.indexOf(
-                            'The database connection is closing.'
+                            "The database connection is closing."
                         ) !== -1
                     )
                 ) {
@@ -68,24 +79,42 @@ export default function create(global: Window) {
         function upgradeneededTest(
             this: any,
             db: IDBDatabase,
-            ts?: IDBTransaction
+            transaction: IDBTransaction
         ) {
-            switch (typeof store) {
-                case 'string': {
-                    let has = db.objectStoreNames.contains(store);
-                    return has;
+            const testStore = function (store) {
+                const diff = getDiffByObjectStore(
+                    store,
+                    db,
+                    transaction,
+                    incrementalUpdate
+                );
+                if (
+                    diff.add?.length ||
+                    diff.change?.length ||
+                    diff.del?.length
+                ) {
+                    return false;
                 }
-                case 'function': {
+                return true;
+            };
+
+            switch (typeof store) {
+                case "string": {
+                    const [name, indexes] = store.split("|");
+                    return testStore({ [name]: indexes || "++" });
+                }
+                case "function": {
                     try {
-                        return (
-                            store as (
-                                db: IDBDatabase,
-                                ts?: IDBTransaction
-                            ) => boolean
-                        ).call(this, db, ts);
+                        const upgradeneeded = store.call(this, db, transaction);
+                        return typeof upgradeneeded !== "function";
                     } catch (err) {
                         // ts.abort();
                         throw err;
+                    }
+                }
+                case "object": {
+                    if (store) {
+                        return testStore(store);
                     }
                 }
                 default:
@@ -97,9 +126,7 @@ export default function create(global: Window) {
             if (
                 upgradeneededTest(
                     db,
-                    db.objectStoreNames.length
-                        ? db.transaction([...db.objectStoreNames], 'readonly')
-                        : null
+                    db.transaction([...db.objectStoreNames], "readonly")
                 )
             ) {
                 return Promise.resolve(db);
@@ -122,30 +149,111 @@ export default function create(global: Window) {
                     const db = this.result;
                     const transaction = this.transaction;
                     try {
-                        if (typeof upgradeneeded === 'function') {
-                            upgradeneeded.call(this, db, transaction, event);
-                            if (
-                                !upgradeneededTest.call(this, db, transaction)
-                            ) {
-                                throw new Error(
-                                    // `虽然已经执行了 upgradeneeded 更新数据库，但仍未通过 store 的检测`
-                                    `Parameter "store" contradicts "upgradeneeded"`
-                                );
+                        switch (typeof store) {
+                            case "function": {
+                                const run = () =>
+                                    store.call(this, db, transaction);
+                                const getSchema = () =>
+                                    buildGlobalSchema(db, transaction);
+                                let upgradeneeded;
+                                let oldSchema = getSchema();
+                                while (
+                                    typeof (upgradeneeded = run()) ===
+                                    "function"
+                                ) {
+                                    upgradeneeded.call(
+                                        this,
+                                        db,
+                                        transaction,
+                                        event
+                                    );
+                                    const newSchema = getSchema();
+                                    const diff = getSchemaDiff(
+                                        oldSchema,
+                                        newSchema,
+                                        false
+                                    );
+                                    oldSchema = newSchema;
+                                    if (
+                                        !(
+                                            diff.add?.length ||
+                                            diff.change?.length ||
+                                            diff.del?.length
+                                        )
+                                    ) {
+                                        throw new Error(
+                                            // `虽然已经执行了 upgradeneeded 更新数据库，但仍未通过 store 的检测`
+                                            `Parameter "store" contradicts "upgradeneeded"`
+                                        );
+                                    }
+                                }
+                                break;
                             }
-                        } else if (typeof store === 'string') {
-                            if (!db.objectStoreNames.contains(store)) {
-                                db.createObjectStore(store, {
-                                    autoIncrement: true, //自动生成主键
+                            case "string":
+                            case "object": {
+                                let _store: { [name: string]: string };
+                                if (typeof store === "string") {
+                                    const [name, indexes] = store.split("|");
+                                    _store = { [name]: indexes || "++" };
+                                } else {
+                                    _store = store as {
+                                        [name: string]: string;
+                                    };
+                                }
+                                const diff = getDiffByObjectStore(
+                                    _store,
+                                    db,
+                                    transaction,
+                                    incrementalUpdate
+                                );
+                                diff.add.forEach((tuple) => {
+                                    createTable(
+                                        transaction,
+                                        tuple[0],
+                                        tuple[1].primKey,
+                                        tuple[1].indexes
+                                    );
+                                });
+                                // Change tables
+                                diff.change.forEach((change) => {
+                                    if (change.recreate) {
+                                        throw "Not yet support for changing primary key";
+                                    } else {
+                                        const store = transaction.objectStore(
+                                            change.name
+                                        );
+                                        // Add indexes
+                                        change.add.forEach((idx) =>
+                                            addIndex(store, idx)
+                                        );
+                                        // Update indexes
+                                        change.change.forEach((idx) => {
+                                            store.deleteIndex(idx.name);
+                                            addIndex(store, idx);
+                                        });
+                                        // Delete indexes
+                                        change.del.forEach((idxName) =>
+                                            store.deleteIndex(idxName)
+                                        );
+                                    }
                                 });
                             }
-                        } else {
-                            if (
-                                !upgradeneededTest.call(this, db, transaction)
-                            ) {
-                                throw new TypeError('Missing or wrong type of "upgradeneeded" parameter');
+                            default: {
+                                if (
+                                    !upgradeneededTest.call(
+                                        this,
+                                        db,
+                                        transaction
+                                    )
+                                ) {
+                                    throw new TypeError(
+                                        'Missing or wrong type of "upgradeneeded" parameter'
+                                    );
+                                }
                             }
                         }
                     } catch (e) {
+                        console.error(e);
                         transaction.abort();
                         db.close();
                         reject(e);
@@ -185,7 +293,7 @@ export default function create(global: Window) {
             request.onsuccess = function (_event) {
                 resolve(null);
             };
-            
+
             // request.onblocked = function (_event) {
             //     let db = dbMap.get(dbName);
             //     console.log('delete onblocked', db);
