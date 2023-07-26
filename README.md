@@ -58,80 +58,52 @@ console.log(await kv1.get("key2"));
 ```typescript
 type idbOpen = (dbName: string, opeion: InitOptions) => Promise<IDBDatabase>;
 
-type InitOptions = {
-    /** 存储库名称 或者用于检测是否需要更新数据数的函数,返回 true 则不更新, 否则执行 upgradeneeded 来更新数据库 */
-    store?: string | ((db: IDBDatabase, itc?: IDBTransaction) => boolean);
-    /**
-     * 更新数据库
-     * @param db IDBDatabase
-     * @param event onupgradeneeded的事件对像
-     */
-    upgradeneeded?: (
-        this: IDBOpenDBRequest,
-        db: IDBDatabase,
-        itc: IDBTransaction,
-        event: IDBVersionChangeEvent
-    ) => void;
+export type InitOptions = {
+    /** 存储库名称 或者用于检测是否需要更新数据数的函数,返回 true 则不更新, 否则执行 upgradeneeded */
+    store?:
+        | string
+        | { [name: string]: string }
+        | (( db: IDBDatabase, transaction?: IDBTransaction ) => void | Upgradeneeded);
+    /** 增量更新,默认开启 **/
+    incrementalUpdate?: boolean;
 };
 ```
 
-当 `store` 为 `stirng` 时, `upgradeneeded` 可以不传, 默认以如下方式,初始化 `ObjectStore`
+### 约定式
 
 ```typescript
-// 如果库里面没有这个名称的 `ObjectStore` 时
-db.createObjectStore(store, {
-    autoIncrement: true,
-});
+import idbOpen from "idb-open";
+
+function getDB(){
+    return idbOpen('db1', {store:'st1|++,name'}); // 只有一个ObjectStore时可以这样简写
+    // 等价于
+    return idbOpen('db1', {store:{
+        'st1': '++,name'
+    }})
+}
 ```
 
-当然,你也可以用 `upgradeneeded` 参数来创建 `ObjectStore`
+### 自定义
 
 ```typescript
 import idbOpen from "idb-open";
 
 const getDB = async () => {
     return idbOpen("db1", {
-        store: "storeName1",
-        upgradeneeded: (db, itc) => {
-            const os = db.createObjectStore("storeName1", {
-                keyPath: "id",
-            });
-            os.createIndex("name", "name", { unique: false });
-            os.createIndex("email", "email", { unique: true });
-        },
+        store: (db)=>{
+            if(db.objectStoreNames.contains('ts1'));
+            return (db,transaction)=>{
+               const os = db.createObjectStore('ts1', {
+                    autoIncrement: true,
+                })
+                // os.createIndex("name", "name", { unique: false });
+            }
+        }
     });
 };
 ```
 
-以上代码`upgradeneeded`的执行,只会简单判断是否有`storeName1`; 当 `store` 是函数时,可以检查更多的东西以判断是否需要更新数据库;
-
-```js
-import idbOpen from "idb-open";
-
-const getDB = async () => {
-    return idbOpen("db1", {
-        store: (db, itc) => {
-            const useStores = ["storeName1", "storeName2"];
-            const storeNames = [...db.objectStoreNames];
-            return useStores.every((name) => {
-                return storeNames.indexOf(name);
-            });
-        },
-        upgradeneeded: (db, itc) => {
-            const os = db.createObjectStore("storeName1", {
-                keyPath: "id",
-            });
-            os.createIndex("name", "name", { unique: false });
-            os.createIndex("email", "email", { unique: true });
-            db.createObjectStore("storeName2", {
-                autoIncrement: true,
-            });
-        },
-    });
-};
-```
-
-> 但要注意 `store` 与 `upgradeneeded` 不能相悖, 不然可能会报错;
+> 但要注意 `store` 与返回的处理函数不能相悖, 不然可能会因为死循环报错;
 
 ## 开发中
 

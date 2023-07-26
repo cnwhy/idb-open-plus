@@ -20,7 +20,7 @@ export type InitOptions = {
         | { [name: string]: string }
         | ((
               db: IDBDatabase,
-              transaction: IDBTransaction
+              transaction?: IDBTransaction
           ) => void | Upgradeneeded);
     incrementalUpdate?: boolean;
 };
@@ -79,7 +79,7 @@ export default function create(global: Window) {
         function upgradeneededTest(
             this: any,
             db: IDBDatabase,
-            transaction: IDBTransaction
+            transaction?: IDBTransaction
         ) {
             const testStore = function (store) {
                 const diff = getDiffByObjectStore(
@@ -126,7 +126,7 @@ export default function create(global: Window) {
             if (
                 upgradeneededTest(
                     db,
-                    db.transaction([...db.objectStoreNames], "readonly")
+                    db.objectStoreNames.length ? db.transaction([...db.objectStoreNames], "readonly") : undefined
                 )
             ) {
                 return Promise.resolve(db);
@@ -271,7 +271,11 @@ export default function create(global: Window) {
                         dbMap.delete(dbName);
                     };
                     dbMap.set(dbName, db);
-                    resolve(dbTest(db));
+                    try{
+                        resolve(dbTest(db));
+                    }catch(e){
+                        reject(e);
+                    }
                 };
                 request.onblocked = function (_event) {
                     let db = dbMap.get(dbName);

@@ -56,19 +56,19 @@ describe("idbOpen 报错处理", () => {
             assert(true);
         }
     });
-    it(`upgradeneeded 参数缺失`, async () => {
-        const dbName = "db2";
-        try {
-            await idbOpen(dbName, {
-                store: (db) => {
-                    if (db.objectStoreNames.contains("storeXX")) return;
-                },
-            });
-        } catch (e) {
-            // log('err', e);
-            assert(true);
-        }
-    });
+    // it(`upgradeneeded 参数缺失`, async () => {
+    //     const dbName = "db2";
+    //     try {
+    //         await idbOpen(dbName, {
+    //             store: (db) => {
+    //                 if (db.objectStoreNames.contains("storeXX")) return;
+    //             },
+    //         });
+    //     } catch (e) {
+    //         // log('err', e);
+    //         assert(true);
+    //     }
+    // });
 
     it(`option.store 报错处理`, async () => {
         const dbName = "db2",
