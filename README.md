@@ -132,3 +132,33 @@ const getDB = async () => {
 ```
 
 > 但要注意 `store` 与 `upgradeneeded` 不能相悖, 不然可能会报错;
+
+## 开发中
+
+### 约定式创建 `ObjectStore`
+||||
+|--|--|--|
+|*主键约定*|
+| ++keyPath | 自动递增主键 |  |
+| ++ | 隐藏的自增主键 |  |
+| keyPath | 非自增主键 | 需要主动提供主键 |
+| *(blank)* | 隐藏的非自增主键 | 将第一个条目留空意味着主键是隐藏的，而不是自动递增的 |
+|*索引约定*|
+| keyPath | 普通索引 |  |
+| &keyPath | 唯一索引 |  |
+| *keyPath | Multi-valued | 表示如果key是一个数组，则每个数组值将被视为对象的键 |
+| [keyPath1+keyPath2] | 复合索引 |  |
+
+```js
+{
+    friends: '++id,name,shoeSize', // Primary Key is auto-incremented (++id)
+    pets: 'id, name, kind',        // Primary Key is not auto-incremented (id)
+    cars: '++, name',              // Primary Key auto-incremented but not inbound
+    enemies: ',name,*weaknesses',  // Primary key is neither inbound nor auto-incr
+                                   // 'weaknesses' contains an array of keys (*)
+    users: 'meta.ssn, addr.city',  // Dotted keypath refers to nested property
+    people: '[name+ssn], &ssn'     // Compound primary key. Unique index ssn
+}
+```
+
+> 约定式模型参考自[dexie](https://github.com/dfahlander/Dexie.js);
