@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { idbOpen, idbDelete } from "../src";
+// const { idbOpen, idbDelete } = (window as any).idbOpenPlush;
 // (window as any).idbOpen = idbOpen;
 // (window as any).idbDelete = idbDelete;
 const log = function (...arg) {};

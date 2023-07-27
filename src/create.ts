@@ -45,7 +45,6 @@ export default function create(global: Window) {
             return Promise.reject(new TypeError("dbName must be a string"));
         }
 
-        // if (!version) {
         let db = dbMap.get(dbName);
         if (db) {
             try {
@@ -73,7 +72,6 @@ export default function create(global: Window) {
             if (p === dbMap.get(dbName)) dbMap.delete(dbName);
         });
         return p;
-        // }
 
         function upgradeneededTest(
             this: any,
