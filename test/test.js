@@ -149,7 +149,7 @@ async function main() {
     if(coverage){
         await page.coverage.startJSCoverage({ includeRawScriptCoverage: true });
     }
-    await page.goto(`http://127.0.0.1:${serverPort}`, { waitUntil: "load" });
+    await page.goto(`http://localhost:${serverPort}`, { waitUntil: "load" });
 }
 
 main();
