@@ -140,7 +140,7 @@ async function main() {
     page.on("error", (error) => console.error(error));
     page.on("pageerror", (error) => console.error(error));
     page.on("console", onConsole);
-    await page.exposeFunction("polendinaEnd", async (errors) => {
+    await page.exposeFunction("__testEnd__", async (errors) => {
         await end(errors);
         if (errors) process.exit(1);
     });

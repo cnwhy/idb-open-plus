@@ -1,9 +1,8 @@
 import {
-    addIndex,
     buildGlobalSchema,
-    createTable,
     getDiffByObjectStore,
     getSchemaDiff,
+    updateDbByDiff,
 } from "./utils";
 
 export type Upgradeneeded = (
@@ -126,7 +125,9 @@ export default function create(global: Window) {
             if (
                 upgradeneededTest(
                     db,
-                    db.objectStoreNames.length ? db.transaction([...db.objectStoreNames], "readonly") : undefined
+                    db.objectStoreNames.length
+                        ? db.transaction([...db.objectStoreNames], "readonly")
+                        : undefined
                 )
             ) {
                 return Promise.resolve(db);
@@ -206,37 +207,8 @@ export default function create(global: Window) {
                                     transaction,
                                     incrementalUpdate
                                 );
-                                diff.add.forEach((tuple) => {
-                                    createTable(
-                                        transaction,
-                                        tuple[0],
-                                        tuple[1].primKey,
-                                        tuple[1].indexes
-                                    );
-                                });
-                                // Change tables
-                                diff.change.forEach((change) => {
-                                    if (change.recreate) {
-                                        throw "Not yet support for changing primary key";
-                                    } else {
-                                        const store = transaction.objectStore(
-                                            change.name
-                                        );
-                                        // Add indexes
-                                        change.add.forEach((idx) =>
-                                            addIndex(store, idx)
-                                        );
-                                        // Update indexes
-                                        change.change.forEach((idx) => {
-                                            store.deleteIndex(idx.name);
-                                            addIndex(store, idx);
-                                        });
-                                        // Delete indexes
-                                        change.del.forEach((idxName) =>
-                                            store.deleteIndex(idxName)
-                                        );
-                                    }
-                                });
+                                updateDbByDiff(diff, db, transaction);
+                                break;
                             }
                             default: {
                                 if (
@@ -271,9 +243,9 @@ export default function create(global: Window) {
                         dbMap.delete(dbName);
                     };
                     dbMap.set(dbName, db);
-                    try{
+                    try {
                         resolve(dbTest(db));
-                    }catch(e){
+                    } catch (e) {
                         reject(e);
                     }
                 };

@@ -175,7 +175,7 @@ export function buildGlobalSchema(
     return globalSchema;
 }
 
-// 调整索引
+// 调整已存在索引的名称
 export function adjustToExistingIndexNames(
     schema: DbSchema,
     idbtrans: IDBTransaction
@@ -281,19 +281,19 @@ export function getSchemaDiff(
     return diff;
 }
 
-export const _hasOwn = {}.hasOwnProperty;
+// export const _hasOwn = {}.hasOwnProperty;
 
-export function hasOwn(obj, prop) {
-    return _hasOwn.call(obj, prop);
-}
+// export function hasOwn(obj, prop) {
+//     return _hasOwn.call(obj, prop);
+// }
 
-export function shallowClone(obj) {
-    var rv = {};
-    for (var m in obj) {
-        if (hasOwn(obj, m)) rv[m] = obj[m];
-    }
-    return rv;
-}
+// export function shallowClone(obj) {
+//     var rv = {};
+//     for (var m in obj) {
+//         if (hasOwn(obj, m)) rv[m] = obj[m];
+//     }
+//     return rv;
+// }
 
 export function arrayToObject<T, R>(
     array: T[],
@@ -318,7 +318,46 @@ export function getDiffByObjectStore(
         const [primKey, ...indexes] = formatStore(store[storeName]);
         thisSchema[storeName] = createTableSchema(storeName, primKey, indexes);
     });
+    adjustToExistingIndexNames(globalSchema, transaction);
+    adjustToExistingIndexNames(thisSchema, transaction);
     const diff = getSchemaDiff(globalSchema, thisSchema, incrementalUpdate);
-    console.log("[diff]", diff);
+    // console.log("[diff]", diff);
     return diff;
+}
+
+export function updateDbByDiff(
+    diff: SchemaDiff,
+    db: IDBDatabase,
+    updateTransaction: IDBTransaction
+) {
+    // Add tables
+    diff.add.forEach((tuple) => {
+        createTable(
+            updateTransaction,
+            tuple[0],
+            tuple[1].primKey,
+            tuple[1].indexes
+        );
+    });
+    // Change tables
+    diff.change.forEach((change) => {
+        if (change.recreate) {
+            throw "Not yet support for changing primary key";
+        } else {
+            const store = updateTransaction.objectStore(change.name);
+            // Add indexes
+            change.add.forEach((idx) => addIndex(store, idx));
+            // Update indexes
+            change.change.forEach((idx) => {
+                store.deleteIndex(idx.name);
+                addIndex(store, idx);
+            });
+            // Delete indexes
+            change.del.forEach((idxName) => store.deleteIndex(idxName));
+        }
+    });
+    // delete tables
+    diff.del.forEach((name) => {
+        db.deleteObjectStore(name);
+    });
 }
