@@ -9,15 +9,14 @@ const open = require("open");
 const v8toIstanbul = require("v8-to-istanbul");
 // const { exec } = require('child_process');
 
-// const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const codePath = path.join(__dirname, "..").replace(/\\/g, "/");
-const coverageInclude = new RegExp(codePath + "/(lib|src)");
 const port = 3300;
 
 const outDir = path.join(__dirname, "../.nyc_output");
+const root = path.join(__dirname,'../test');
+const codePath = path.join(__dirname, "..").replace(/\\/g, "/");
+const coverageInclude = new RegExp(codePath + "/(lib|src)");
 
 const args = process.argv.slice(2);
-
 const noOpen = args.includes("--noOpen");
 const coverage = args.includes("--coverage");
 
@@ -25,7 +24,7 @@ const startServer = async () => {
     const server = await createServer({
         // 任何合法的用户配置选项，加上 `mode` 和 `configFile`
         configFile: false,
-        root: __dirname,
+        root: root,
         server: {
             port: port,
         },
@@ -49,8 +48,6 @@ const runConsole = async (args) => {
 async function main() {
     const server = await startServer();
     const serverPort = server.config.server.port || port;
-    let outLog = Promise.resolve();
-    // let executionQueue = Promise.resolve();
     const browser = await puppeteer.launch({
         args: ["--no-sandbox"],
         headless: "new",

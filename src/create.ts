@@ -24,7 +24,7 @@ export type InitOptions = {
     incrementalUpdate?: boolean;
 };
 
-export default function create(global: Window) {
+export function create(global: Window) {
     const dbMap = new Map();
 
     /**
@@ -34,7 +34,6 @@ export default function create(global: Window) {
      * @returns Promise<IDBDatabase>
      */
     const idbOpen: (
-        /** */
         dbName: string,
         options?: InitOptions
     ) => Promise<IDBDatabase> = async (
