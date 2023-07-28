@@ -19,8 +19,7 @@
     "prebuild": "npm run clean",
     "test": "node ./script/test.js",
     "test:speed": "node ./script/puppeteer ./test/speedTest",
-    "coverage": "npm test -- --coverage --noOpen",
-    "coverage:auto": "npm test -- --coverage",
+    "coverage": "npm test -- --coverage",
     "test-server": "vite ./test --port 3300",
     "prepack": "npm test && npm run build"
   },

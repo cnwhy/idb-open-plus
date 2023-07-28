@@ -11,10 +11,22 @@ const v8toIstanbul = require("v8-to-istanbul");
 
 const port = 3300;
 
+
+// 覆盖率 json 输出目录
 const outDir = path.join(__dirname, "../.nyc_output");
+// vite 启动测试服务的路径
 const root = path.join(__dirname,'../test');
+// 项目目录
 const codePath = path.join(__dirname, "..").replace(/\\/g, "/");
+// 筛选需要导出覆盖率的文件
 const coverageInclude = new RegExp(codePath + "/(lib|src)");
+
+console.log('[config]',{
+    outDir,
+    root,
+    codePath,
+    coverageInclude
+})
 
 const args = process.argv.slice(2);
 const noOpen = args.includes("--noOpen");
@@ -45,6 +57,11 @@ const runConsole = async (args) => {
     console.log(...(await args));
 };
 
+const outCoverageReporter = async () => {
+    var nyc = new NYC({ reporter: ["text", "html"] });
+    return nyc.report();
+}
+
 async function main() {
     const server = await startServer();
     const serverPort = server.config.server.port || port;
@@ -61,52 +78,24 @@ async function main() {
             console.log("====> 开始分析覆盖率");
             // await page.close();
             const jsCoverage = await page.coverage.stopJSCoverage();
-            // jsCoverage.forEach((item) => {
-            //     const { url } = item;
-            //     console.log(url);
-            // });
+
             let out = jsCoverage.filter((item) => {
                 const isLib = coverageInclude.test(item.url);
-                // const isLib = item.url.indexOf('/idbConnection/(lib|src)/') !== -1;
                 if (isLib) {
-                    // let url = new URL(item.url);
-                    // url.pathname = url.pathname.replace(/\:/g, '_');
-                    // item.url = url.toString();
                     return true;
                 }
                 return false;
             });
-            // for (let k of out) {
-            //     let url = new URL(k.url);
-            //     const converter = v8toIstanbul(
-            //         url.pathname.replace('/@fs/', ''),
-            //         undefined,
-            //         { source: k.text }
-            //     );
-            //     converter.load();
-            //     converter.applyCoverage(k.rawScriptCoverage.functions);
-            //     console.info(JSON.stringify(converter.toIstanbul()));
-            // }
-
-            // out = out.map((item) => {
-            //     let url = new URL(item.url);
-            //     url.pathname = url.pathname.replace(/\:/g, '_');
-            //     // item.url = url.toString();
-            //     return {
-            //         ...item,
-            //         url: url.toString(),
-            //     };
-            // });
-            // pti.write([...out], { storagePath: './.nyc_output' });
 
             let outJson = {};
+
             for (let k of out) {
                 let url = new URL(k.url);
-                url = url.pathname.replace("/@fs/", "");
+                url = url.pathname.replace("/@fs/", "/");
                 const converter = v8toIstanbul(url, undefined, {
                     source: k.text,
                 });
-                converter.load();
+                await converter.load();
                 converter.applyCoverage(k.rawScriptCoverage.functions);
                 // console.info(JSON.stringify(converter.toIstanbul()));
                 // outJson[url] = converter.toIstanbul();
@@ -124,8 +113,7 @@ async function main() {
 
             console.log("====> 分析完成");
             console.log("====> 开始生成覆盖率报告");
-            var nyc = new NYC({ reporter: ["text", "html"] });
-            await nyc.report();
+            await outCoverageReporter(); // 将覆盖率数据转为可读报告。
             let htmlFile = path.join(__dirname, "../coverage/index.html");
             console.log(`详细报告: ${htmlFile}`);
             noOpen || open(htmlFile);
