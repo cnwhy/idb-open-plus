@@ -11,18 +11,17 @@
     "dist"
   ],
   "scripts": {
-    "clean": "rimraf lib dist",
-    "prebuild": "npm run clean",
     "build": "npm run build:vite",
     "build:rollup": "tsc && rollup -c --bundleConfigAsCjs",
     "build:vite": "tsc && vite build",
-    "dev": "tsc && concurrently \"tsc --watch --preserveWatchOutput\" \"npm run server\" ",
-    "server": "vite",
-    "test": "node ./test/test.js",
-    "coverage": "npm test -- --coverage",
+    "clean": "rimraf lib dist",
+    "demo": "node ./script/puppeteer ./demo",
+    "prebuild": "npm run clean",
+    "test": "node ./script/test.js",
+    "test:speed": "node ./script/puppeteer ./test/speedTest",
+    "coverage": "npm test -- --coverage --noOpen",
+    "coverage:auto": "npm test -- --coverage",
     "test-server": "vite ./test --port 3300",
-    "demo": "vite ./demo",
-    "test-polendina": "polendina --coverage test/bdd.js",
     "prepack": "npm test && npm run build"
   },
   "keywords": [

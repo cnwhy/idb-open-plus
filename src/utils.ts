@@ -135,7 +135,7 @@ export function createTableSchema(
 // 当前数据库，所有数据体结构
 export function buildGlobalSchema(
     idbdb: IDBDatabase,
-    tmpTrans: IDBTransaction
+    tmpTrans?: IDBTransaction
 ) {
     const globalSchema: DbSchema = {};
     const dbStoreNames = [...idbdb.objectStoreNames];
@@ -176,35 +176,35 @@ export function buildGlobalSchema(
 }
 
 // 调整已存在索引的名称
-export function adjustToExistingIndexNames(
-    schema: DbSchema,
-    idbtrans: IDBTransaction
-) {
-    // Issue #30 Problem with existing db - adjust to existing index names when migrating from non-dexie db
-    const storeNames = idbtrans.db.objectStoreNames;
+// export function adjustToExistingIndexNames(
+//     schema: DbSchema,
+//     idbtrans?: IDBTransaction
+// ) {
+//     // Issue #30 Problem with existing db - adjust to existing index names when migrating from non-dexie db
+//     const storeNames = idbtrans.db.objectStoreNames;
 
-    for (let i = 0; i < storeNames.length; ++i) {
-        const storeName = storeNames[i];
-        const store = idbtrans.objectStore(storeName);
+//     for (let i = 0; i < storeNames.length; ++i) {
+//         const storeName = storeNames[i];
+//         const store = idbtrans.objectStore(storeName);
 
-        for (let j = 0; j < store.indexNames.length; ++j) {
-            const indexName = store.indexNames[j];
-            const keyPath = store.index(indexName).keyPath;
-            const dexieName =
-                typeof keyPath === "string"
-                    ? keyPath
-                    : "[" + [...keyPath].join("+") + "]";
-            if (schema[storeName]) {
-                const indexSpec = schema[storeName].idxByName[dexieName];
-                if (indexSpec) {
-                    indexSpec.name = indexName;
-                    delete schema[storeName].idxByName[dexieName];
-                    schema[storeName].idxByName[indexName] = indexSpec;
-                }
-            }
-        }
-    }
-}
+//         for (let j = 0; j < store.indexNames.length; ++j) {
+//             const indexName = store.indexNames[j];
+//             const keyPath = store.index(indexName).keyPath;
+//             const dexieName =
+//                 typeof keyPath === "string"
+//                     ? keyPath
+//                     : "[" + [...keyPath].join("+") + "]";
+//             if (schema[storeName]) {
+//                 const indexSpec = schema[storeName].idxByName[dexieName];
+//                 if (indexSpec) {
+//                     indexSpec.name = indexName;
+//                     delete schema[storeName].idxByName[dexieName];
+//                     schema[storeName].idxByName[indexName] = indexSpec;
+//                 }
+//             }
+//         }
+//     }
+// }
 
 // 比较所有数据集的索引差异
 export function getSchemaDiff(
@@ -318,8 +318,8 @@ export function getDiffByObjectStore(
         const [primKey, ...indexes] = formatStore(store[storeName]);
         thisSchema[storeName] = createTableSchema(storeName, primKey, indexes);
     });
-    adjustToExistingIndexNames(globalSchema, transaction);
-    adjustToExistingIndexNames(thisSchema, transaction);
+    // adjustToExistingIndexNames(globalSchema, transaction);
+    // adjustToExistingIndexNames(thisSchema, transaction);
     const diff = getSchemaDiff(globalSchema, thisSchema, incrementalUpdate);
     // console.log("[diff]", diff);
     return diff;
