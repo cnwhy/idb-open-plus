@@ -7,7 +7,7 @@ window.idbOpen = idbOpen;
 /**
  * 实现给我和简单人kv库
  */
-class OsCmd {
+class IdbKV {
     constructor(dbName, storeName) {
         this.options = {
             dbName,
@@ -43,7 +43,7 @@ class OsCmd {
 /**
  * 搭配 idb 库使用变得更丝滑
  */
-class OsCmd1 {
+class IdbKV1 {
     constructor(dbName, storeName) {
         this.options = {
             dbName,
@@ -101,8 +101,8 @@ class IndexOsCmd1 extends IndexOsCmd {
 
 async function demo1() {
     await idbDelete("db1");
-    const cmd1 = new OsCmd("db1", "os1");
-    const cmd2 = new OsCmd1("db1", "os2");
+    const cmd1 = new IdbKV("db1", "os1");
+    const cmd2 = new IdbKV1("db1", "os2");
     Promise.all([cmd1.get("key"), cmd2.get("key")]).then(console.log);
     cmd1.set(["cmd1"], "key");
     cmd2.set(["cmd2"], "key");
