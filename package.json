@@ -1,8 +1,8 @@
 {
   "name": "idb-open-plush",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Open indexedDb to get the Database you need",
-  "main": "lib/idb-open-plush.cjs.js",
+  "main": "dist/idb-open-plush.cjs.js",
   "browser": "dist/idb-open-plush.umd.js",
   "module": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -12,7 +12,6 @@
   ],
   "scripts": {
     "build": "npm run build:vite",
-    "build:rollup": "tsc && rollup -c --bundleConfigAsCjs",
     "build:vite": "tsc && vite build",
     "clean": "rimraf lib dist",
     "demo": "node ./script/puppeteer ./demo",
