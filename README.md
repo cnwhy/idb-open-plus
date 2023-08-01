@@ -52,7 +52,8 @@ console.log(await kv1.get("key1"));
 console.log(await kv1.get("key2"));
 ```
 
-> 上面的代码，虽然两个 kv 对像用的同一个 db, 但我们不需要去处理 `db1` 这个库的更新；只是必须遵循一个原则，`IDBDatabase` 即用即取，不要缓存它；即每次要用事务时都先通过 `idbOpen()` 拿到 `IDBDatabase` , 内部是已经做好了缓存的，无需太过当心效率问题；
+> 上面的代码，虽然两个 kv 对像用的同一个 db, 但我们不需要去处理 `db1` 这个库的更新；  
+> 只是必须遵循一个原则，`IDBDatabase` 即用即取，不要缓存它， 即每次要用事务时都先通过 `idbOpen()` 拿到 `IDBDatabase` , 内部是已经做好了缓存的，无需太过当心效率问题；
 
 ### 搭配`idb`库使用 代码变得更丝滑
 
@@ -87,6 +88,8 @@ class IdbKV {
 
 type idbOpen: (dbName: string, options?: InitOptions) => Promise<IDBDatabase>;
 
+type IncrementalUpdate = boolean | "onlyIndex" | "onlyStore";
+
 type Upgradeneeded = (
     this: IDBOpenDBRequest,
     db: IDBDatabase,
@@ -103,7 +106,7 @@ type InitOptions = {
               db: IDBDatabase,
               transaction?: IDBTransaction
           ) => void | Upgradeneeded);
-    incrementalUpdate?: boolean;
+    incrementalUpdate?: IncrementalUpdate;
 };
 
 ```
@@ -158,10 +161,12 @@ function getDB() {
 
 #### 关于 `InitOptions.incrementalUpdate`
 
-> `incrementalUpdate` 是约定模式下来控制更新规则开关，默认开启
+> `incrementalUpdate` 是约定模式下来控制更新规则开关，默认为 `true`
 
-- 开启时，更新配置不会删除存储库和索引; 适合多模块各自管理存储表的情况
-- 关闭时，更新配置时会删除未配置的存储库和索引; 适合共用同一配置的情况
+- `true` 更新配置不会删除存储库和索引; 适合多模块各自管理存储表的情况
+- `false` 更新配置时会删除未配置的存储库和索引; 适合共用同一配置的情况
+- `'onlyIndex'` 更新配置时会删除未配置的存储库，但会保留未配置的索引;
+- `'onlyStore'` 更新配置时会删除未配置的索引，但会保留未配置的存储库;
 
 ### 自定义创建/更新 `ObjectStore`
 
