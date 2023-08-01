@@ -91,7 +91,7 @@ async function main() {
 
             for (let k of out) {
                 let url = new URL(k.url);
-                url = url.pathname.replace("/@fs/", "/");
+                url = url.pathname.replace("/@fs/", fs.sep === "/" ? "/" : '');
                 const converter = v8toIstanbul(url, undefined, {
                     source: k.text,
                 });

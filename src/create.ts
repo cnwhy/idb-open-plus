@@ -3,6 +3,7 @@ import {
     getDiffByObjectStore,
     getSchemaDiff,
     updateDbByDiff,
+    IncrementalUpdate,
 } from "./utils";
 
 export type Upgradeneeded = (
@@ -21,7 +22,7 @@ export type InitOptions = {
               db: IDBDatabase,
               transaction?: IDBTransaction
           ) => void | Upgradeneeded);
-    incrementalUpdate?: boolean;
+    incrementalUpdate?: IncrementalUpdate;
 };
 
 export function create(global: Window) {

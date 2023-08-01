@@ -1,6 +1,8 @@
 export const isIEOrEdge =
     typeof navigator !== "undefined" &&
     /(MSIE|Trident|Edge)/.test(navigator.userAgent);
+
+export type IncrementalUpdate = boolean | "onlyIndex" | "onlyStore";
 /**
  * 字段属性
  */
@@ -210,7 +212,7 @@ export function buildGlobalSchema(
 export function getSchemaDiff(
     oldSchema: DbSchema,
     newSchema: DbSchema,
-    incrementalUpdate = true
+    incrementalUpdate: IncrementalUpdate = true
 ): SchemaDiff {
     const diff: SchemaDiff = {
         del: [], // Array of table names
@@ -218,7 +220,7 @@ export function getSchemaDiff(
         change: [], // Array of {name: tableName, recreate: newDefinition, del: delIndexNames, add: newIndexDefs, change: changedIndexDefs}
     };
     let table: string;
-    if (!incrementalUpdate) {
+    if (incrementalUpdate === false || incrementalUpdate === "onlyIndex") {
         for (table in oldSchema) {
             if (!newSchema[table]) diff.del.push(table);
         }
@@ -255,7 +257,10 @@ export function getSchemaDiff(
                 const newIndexes = newDef.idxByName;
                 let idxName: string;
 
-                if (!incrementalUpdate) {
+                if (
+                    incrementalUpdate === false ||
+                    incrementalUpdate === "onlyStore"
+                ) {
                     for (idxName in oldIndexes) {
                         if (!newIndexes[idxName]) change.del.push(idxName);
                     }
@@ -310,7 +315,7 @@ export function getDiffByObjectStore(
     store: { [name: string]: string },
     db: IDBDatabase,
     transaction: IDBTransaction,
-    incrementalUpdate?: boolean
+    incrementalUpdate?: IncrementalUpdate
 ) {
     const globalSchema = buildGlobalSchema(db, transaction);
     const thisSchema: DbSchema = {};
