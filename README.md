@@ -9,7 +9,7 @@
 ### 简单 KV 库实现
 
 ```js
-import idbOpen from "idb-open-plush";
+import { idbOpen } from "idb-open-plush";
 
 class IdbKV {
     constructor(dbName, store) {
@@ -58,7 +58,7 @@ console.log(await kv1.get("key2"));
 ### 搭配`idb`库使用 代码变得更丝滑
 
 ```js
-import idbOpen from "idb-open-plush";
+import { idbOpen } from "idb-open-plush";
 import { openDB, wrap, unwrap } from "idb";
 
 class IdbKV {
@@ -114,7 +114,7 @@ type InitOptions = {
 ### 约定式创建/更新 `ObjectStore`
 
 ```typescript
-import idbOpen from "idb-open";
+import { idbOpen } from "idb-open-plush";
 
 function getDB() {
     // return idbOpen("db1", { store: "st1|++,name" }); // 只有一个ObjectStore时可以这样简写
@@ -171,7 +171,7 @@ function getDB() {
 ### 自定义创建/更新 `ObjectStore`
 
 ```typescript
-import idbOpen from "idb-open";
+import { idbOpen } from "idb-open-plush";
 
 const getDB = async () => {
     return idbOpen("db1", {

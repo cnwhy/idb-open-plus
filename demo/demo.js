@@ -1,8 +1,10 @@
 import { openDB, wrap, unwrap } from "idb";
-import { idbOpen, idbDelete } from "../src/";
-// const { idbOpen, idbDelete } = window.idbOpen;
+import idbOpen from "../";
+import { idbDelete } from "../";
 
-window.idbOpen = idbOpen;
+// const { idbOpen, idbDelete } = window.idbOpenPlush;
+
+// window.idbOpen = idbOpen;
 
 /**
  * 实现给我和简单人kv库
