@@ -1,15 +1,15 @@
-# IDB-OPEN-PLUSH
+# IDB-OPEN-PLUS
 
-[![Coverage Status](https://coveralls.io/repos/github/cnwhy/idb-open-plush/badge.svg?branch=master)](https://coveralls.io/github/cnwhy/idb-open-plush?branch=master) [![github test](https://github.com/cnwhy/idb-open-plush/workflows/test/badge.svg?branch=master)](https://github.com/cnwhy/idb-open-plush/actions/workflows/test.yml)
+[![Coverage Status](https://coveralls.io/repos/github/cnwhy/idb-open-plus/badge.svg?branch=master)](https://coveralls.io/github/cnwhy/idb-open-plus?branch=master) [![github test](https://github.com/cnwhy/idb-open-plus/workflows/test/badge.svg?branch=master)](https://github.com/cnwhy/idb-open-plus/actions/workflows/test.yml)
 
-**idb-open-plush** 是提供给需要使用 `indexedDB` 却被 `indexedDB version` 机制困扰的人; 使用它之后完全不需要再去处理 `version`, 至始至终都按你的需要 创建/打开/更新 对应的`IDBDatabase`;
+**idb-open-plus** 是提供给需要使用 `indexedDB` 却被 `indexedDB version` 机制困扰的人; 使用它之后完全不需要再去处理 `version`, 至始至终都按你的需要 创建/打开/更新 对应的`IDBDatabase`;
 
 ## 使用方法及代码示例
 
 ### 简单 KV 库实现
 
 ```js
-import { idbOpen } from "idb-open-plush";
+import { idbOpen } from "idb-open-plus";
 
 class IdbKV {
     constructor(dbName, store) {
@@ -58,7 +58,7 @@ console.log(await kv1.get("key2"));
 ### 搭配`idb`库使用 代码变得更丝滑
 
 ```js
-import { idbOpen } from "idb-open-plush";
+import { idbOpen } from "idb-open-plus";
 import { openDB, wrap, unwrap } from "idb";
 
 class IdbKV {
@@ -114,7 +114,7 @@ type InitOptions = {
 ### 约定式创建/更新 `ObjectStore`
 
 ```typescript
-import { idbOpen } from "idb-open-plush";
+import { idbOpen } from "idb-open-plus";
 
 function getDB() {
     // return idbOpen("db1", { store: "st1|++,name" }); // 只有一个ObjectStore时可以这样简写
@@ -171,7 +171,7 @@ function getDB() {
 ### 自定义创建/更新 `ObjectStore`
 
 ```typescript
-import { idbOpen } from "idb-open-plush";
+import { idbOpen } from "idb-open-plus";
 
 const getDB = async () => {
     return idbOpen("db1", {
