@@ -1,9 +1,9 @@
 {
-  "name": "idb-open-plush",
-  "version": "1.0.2",
+  "name": "idb-open-plus",
+  "version": "1.0.0",
   "description": "Open indexedDb to get the Database you need",
-  "main": "dist/idb-open-plush.cjs.js",
-  "browser": "dist/idb-open-plush.umd.js",
+  "main": "dist/idb-open-plus.cjs.js",
+  "browser": "dist/idb-open-plus.umd.js",
   "module": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [

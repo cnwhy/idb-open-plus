@@ -2,7 +2,7 @@ import { openDB, wrap, unwrap } from "idb";
 import idbOpen from "../";
 import { idbDelete } from "../";
 
-// const { idbOpen, idbDelete } = window.idbOpenPlush;
+// const { idbOpen, idbDelete } = window.idbOpenPlus;
 
 // window.idbOpen = idbOpen;
 
